@@ -278,7 +278,10 @@ handle_cast({predictRes,Body}, State = #main_genserver_state{batchSize = BatchSi
 
       %{RouterHost,RouterPort} = maps:get(serverAPI,ConnectionMap),
       %%  send an ACK to mainserver that the CSV file is ready
-      http_request(RouterHost,RouterPort,"predictRes",ListOfResults++"#"++integer_to_list(BatchID)++"#"++CSVName++"#"++integer_to_list(BatchSize)),
+      io:format("Pred Res before Send:~n~p~n",[floatsToString(ListOfResults)]),
+
+
+      http_request(RouterHost,RouterPort,"predictRes",floatsToString(ListOfResults)++"#"++integer_to_list(BatchID)++"#"++CSVName++"#"++integer_to_list(BatchSize)),
 
 
   {noreply, State#main_genserver_state{msgCounter = MsgCounter+1}};
@@ -404,8 +407,10 @@ startCasting([SourceName|SourceNames],NumOfSampleToSend, MyName, NerlnetGraph)->
 
 
 ack(NerlnetGraph) ->
-  io:format("sending ACK to serverAPI~n"),
-  {_,{Host, Port}} = digraph:vertex(NerlnetGraph,"serverAPI"),
+    {_,{Host, Port}} = digraph:vertex(NerlnetGraph,"serverAPI"),
+
+  io:format("sending ACK to serverAPI via ~p~n",[{Host, Port}]),
+  
 %%  send an ACK to mainserver that the CSV file is ready
   http_request(Host, Port,"ack","ack").
 
@@ -425,3 +430,10 @@ writeSamplesToFile(ListOfSamples,HeadID,CSVName,SampleSize)->
   file:write_file("./output/"++"predict"++CSVName, integer_to_list(HeadID)++" " ++Head++"\n", [append]),
 %%  io:format("./output/predict~p   ~p~p~n", [CSVName,integer_to_list(HeadID),Head]),
   writeSamplesToFile(lists:sublist(ListOfSamples,SampleSize+1,length(ListOfSamples)),HeadID+1,CSVName,SampleSize).
+
+floatsToString(ListOfFloats)-> 
+    floatsToString(ListOfFloats,"").
+floatsToString([],Ret)->
+    lists:sublist(Ret,length(Ret)-1);
+floatsToString([Float|ListOfFloats],Ret)-> 
+    floatsToString(ListOfFloats,Ret++Float++",").

@@ -36,7 +36,7 @@ class Transmitter:
         if currentPhase == "Training":
             dataStr = '{},{},HeartTrain_splitted'.format(sourceName, workersUnderSourceStr) #Python's string format, {} are swapped by the variables in the brackets respectively.
         elif currentPhase == "Prediction":
-            dataStr = '{},{},HeartPredict._splitted'.format(sourceName, workersUnderSourceStr) #Python's string format, {} are swapped by the variables in the brackets respectively.
+            dataStr = '{},{},HeartPredict_splitted'.format(sourceName, workersUnderSourceStr) #Python's string format, {} are swapped by the variables in the brackets respectively.
 
         response = requests.post(self.updateCSVAddress, data=dataStr)
 

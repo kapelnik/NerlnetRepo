@@ -60,17 +60,14 @@ getDeviceEntities(ArchitectureAdderess,CommunicationMapAdderess, HostName)->
   end,
 
 
-
   %%  retrive  a map of arguments of the API Server
   ServerAPI = maps:get(<<"serverAPI">>,ArchitectureMap),
   io:format("All Vertices In Nerlnet Graph:~n~p~n",[digraph:vertices(G)]),
-  io:format("path:~n~p~n",[digraph:get_short_path(G,"serverAPI","c2")]),
-
+  io:format("path:~n~p~n",[digraph:get_short_path(G,"mainServer","serverAPI")]),
 
   io:format("On Device Entities to Open:~nMainServer: ~p~nServerAPI: ~p~nClientsAndWorkers: ~p~nSources: ~p~nRouters: ~p~n Federated Servers: ~p~n",
                                       [MainServer,ServerAPI,ClientsAndWorkers,Sources,Routers,Federateds]),
 
-  
   {MainServer,ServerAPI,ClientsAndWorkers,Sources,Routers,Federateds,NerlNetSettings}.
 
 
@@ -275,7 +272,7 @@ getAllClientsNames([Client|Tail],ClientsNames) ->
     G = digraph:new(),
     ListOfHosts = getAllHosts(ArchitectureMap),
     [addDeviceToGraph(G,ArchitectureMap, HostName)||HostName <- ListOfHosts],
-    connectRouters(G,ArchitectureMap,CommunicationMap),
+    connectEdges(G,ArchitectureMap,CommunicationMap),
 
     %%connect serverAPI to Main Server
     [ServerAPI] = maps:get(<<"serverAPI">>,ArchitectureMap),
@@ -319,10 +316,13 @@ getAllHosts(ArchitectureMap) ->
 
 
 %%connects all the routers in the network by the json configuration received in CommunicationMapAdderess
-connectRouters(G,ArchitectureMap,CommunicationMap) -> 
-
+connectEdges(G,ArchitectureMap,CommunicationMap) -> 
+  % Connection map format as follow:
+    % [{<<"r1">>,[<<"mainServer">>,<<"c1">>,<<"s1">>]},{<<"r2">>,[<<"c2">>,<<"s2">>]}]
     ConnectionsMap = maps:to_list(maps:get(<<"connectionsMap">>,CommunicationMap)),
-    [[addEdges(G,binary_to_list(Router),binary_to_list(ListOfRouters))||ListOfRouters <- ListOfRouters]||{Router,ListOfRouters}<-ConnectionsMap].
+    io:format(" ConnectionsMap: ~n~p~n",[ConnectionsMap]),
+    [[addEdges(G,binary_to_list(Router),binary_to_list(Entitie))||Entitie<-Entities]||{Router,Entities}<-ConnectionsMap].
+    % [[addEdges(G,binary_to_list(Router),binary_to_list(ListOfRouters))||ListOfRouters <- ListOfRouters]||{Router,ListOfRouters}<-ConnectionsMap].
     %io:format("ConnectionsMap:~n~p~n",[ConnectionsMap]).
 	
 addEdges(G,V1,V2) ->
